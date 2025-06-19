@@ -8,13 +8,36 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import React from "react"
-import { Label } from "@/components/ui/label"
+import React, { useState } from "react"
+import { Label } from "@/components/ui/label";
+import api from "@/services/api";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+  try {
+    const result = await api.login(email, password);
+    console.log('Login successful:', result);
+  } catch (error) {
+    setError('Login failed. Please check your credentials.');
+    console.error(error);
+  } finally {
+    setLoading(false);
+  }
+  }
+
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
@@ -25,7 +48,7 @@ export function LoginForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
+          <form onSubmit={handleSubmit}>
             <div className="grid gap-6">
               <div className="flex flex-col gap-4">
                 <Button variant="outline" className="w-full">
@@ -40,7 +63,7 @@ export function LoginForm({
               </div>
               <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
                 <span className="bg-card text-muted-foreground relative z-10 px-2">
-                  Or continue with
+                  {/*Or continue with*/}
                 </span>
               </div>
               <div className="grid gap-6">
@@ -49,7 +72,9 @@ export function LoginForm({
                   <Input
                     id="email"
                     type="email"
-                    placeholder="m@example.com"
+                    placeholder="yourid-yourname@jdu.uz"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
                 <div className="grid gap-3">
@@ -62,10 +87,16 @@ export function LoginForm({
                       Forgot your password?
                     </a>
                   </div>
-                  <Input id="password" type="password"  />
+                  <Input
+                      id="password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                  />
                 </div>
+                {error && <div className="text-red-500 text-sm">{error}</div>}
                 <Button type="submit" className="w-full bg-[#052460]">
-                  Login
+                  {loading ? "Logging in..." : "Login"}
                 </Button>
               </div>
             </div>
