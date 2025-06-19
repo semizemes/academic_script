@@ -15,9 +15,6 @@ const app = express();
 const port = 3001;
 const saltRounds = 10;
 
-app.use(express.json());
-app.use(cors());
-
 app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,
@@ -35,6 +32,50 @@ const db = new pg.Client({
     port: process.env.DATABASE_PORT,
 });
 db.connect();
+
+passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: 'http://localhost:3001/auth/google/callback',
+    passReqToCallback: true
+   },
+   function (request, accessToken, refreshToken, profile, done) {
+
+       return done(null, profile);
+   }
+));
+
+app.use(express.json());
+app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true
+}));
+
+app.get('/auth/google/callback',
+    passport.authenticate('google', {scope: ['email', 'profile'] })
+);
+
+app.get('auth/google',
+  passport.authenticate('google', {
+      successRedirect: "http://localhost:5173/dashboard",
+      failureRedirect: "http://localhost:5173/login"
+  })
+);
+
+app.get('api/user', (req, res) => {
+    if(req.isAuthenticated()) {
+        res.json({authenticated: true, user: req.user});
+    } else {
+        res.json({authenticated: false});
+    }
+});
+
+app.get('api/logout', (req, res) => {
+    req.logout(function(err) {
+        if(err) {return next(err); }
+        res.redirect('http://localhost:5173/login');
+    });
+});
 
 app.get('api/test', (req, res) => {
     console.log('hello')

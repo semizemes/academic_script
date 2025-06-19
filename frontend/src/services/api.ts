@@ -5,6 +5,7 @@ export async function fetchData(endpoint: string, options = {}) {
         headers: {
             'Content-Type': 'application/json',
         },
+        credentials: 'include',
         ...options,
     });
 
@@ -21,6 +22,14 @@ const api = {
             method: 'POST',
             body: JSON.stringify({email, password})
         })
+    },
+
+    getCurrentUser: async () => {
+        return fetchData('/user');
+    },
+
+    logout: async () => {
+        return fetchData('/logout')
     }
 }
 
